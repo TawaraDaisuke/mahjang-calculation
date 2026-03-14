@@ -1,0 +1,60 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# --- 機密情報が含まれる可能性のあるファイル（必ずコミットしない） ---
+# 環境変数（APIキー・シークレット等）
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.*.local
+
+# Firebase（プロジェクト紐づけ・キャッシュ・認証情報）
+.firebaserc
+.firebase/
+*-firebase-adminsdk-*.json
+serviceAccount*.json
+service-account*.json
+credentials.json
+
+# 秘密鍵・証明書
+*.pem
+*.key
+*.p12
+*.pfx
+
+# パッケージマネージャの認証トークン
+.npmrc
+.yarnrc
+.yarnrc.yml
+
+# その他の機密ファイル
+secrets/
+*.secret
+.secret
