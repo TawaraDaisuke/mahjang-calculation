@@ -7,6 +7,9 @@ import { getDealerIndex } from '../store';
 interface PlayerPanelProps {
   seatIndex: number; // 0=東, 1=南, 2=西, 3=北
   state: GameState;
+  /** 点数差表示の基準席（null=通常表示） */
+  diffViewFromSeat: number | null;
+  onToggleDiffView: (fromSeat: number | null) => void;
   onPointsChange: (value: number) => void;
   onNameChange: (value: string) => void;
   onNameFocus?: () => void;
@@ -17,6 +20,8 @@ interface PlayerPanelProps {
 export function PlayerPanel({
   seatIndex,
   state,
+  diffViewFromSeat,
+  onToggleDiffView,
   onPointsChange,
   onNameChange,
   onNameFocus,
@@ -25,11 +30,15 @@ export function PlayerPanel({
 }: PlayerPanelProps) {
   const dealerIndex = getDealerIndex(state);
   const isDealer = dealerIndex === seatIndex;
-  // 東南西北は席で固定（0=東, 1=南, 2=西, 3=北）。親の色だけ局ごとに変わる
   const wind = WIND_NAMES[seatIndex];
   const points = state.points[seatIndex];
   const name = state.names[seatIndex] ?? `プレイヤー${seatIndex + 1}`;
   const hasReachedThisRound = state.reachThisRound[seatIndex];
+  const isDiffView = diffViewFromSeat !== null;
+  const diff =
+    isDiffView && diffViewFromSeat !== null
+      ? points - state.points[diffViewFromSeat]
+      : 0;
 
   const [editingPoints, setEditingPoints] = useState(false);
   const [pointsInput, setPointsInput] = useState(String(points));
@@ -75,30 +84,45 @@ export function PlayerPanel({
       </div>
 
       <div
-        className="flex-1 flex flex-col items-center justify-center my-2"
-        onClick={() => !editingPoints && setEditingPoints(true)}
+        className="flex-1 flex flex-col items-center justify-center mt-8 mb-2"
+        onClick={() => !isDiffView && !editingPoints && setEditingPoints(true)}
       >
-        {editingPoints ? (
-          <input
-            ref={inputRef}
-            type="text"
-            inputMode="numeric"
-            value={pointsInput}
-            onChange={(e) => setPointsInput(e.target.value)}
-            onBlur={handlePointsBlur}
-            onKeyDown={handlePointsKeyDown}
-            className="w-full text-2xl md:text-3xl font-bold text-center text-slate-800 bg-slate-50 border-2 border-slate-300 rounded-lg py-1 focus:outline-none focus:ring-2 focus:ring-slate-500"
-            autoFocus
-          />
+        {isDiffView ? (
+          <>
+            <span
+              className={`text-5xl md:text-7xl font-bold tabular-nums ${diff >= 0 ? 'text-slate-800' : 'text-red-600'}`}
+            >
+              {diff >= 0 ? '+' : ''}
+              {diff.toLocaleString()}
+            </span>
+            <span className="text-base text-slate-500 mt-1">点</span>
+          </>
+        ) : editingPoints ? (
+          <>
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="numeric"
+              value={pointsInput}
+              onChange={(e) => setPointsInput(e.target.value)}
+              onBlur={handlePointsBlur}
+              onKeyDown={handlePointsKeyDown}
+              className="w-full text-4xl md:text-5xl font-bold text-center text-slate-800 bg-slate-50 border-2 border-slate-300 rounded-lg py-2 focus:outline-none focus:ring-2 focus:ring-slate-500"
+              autoFocus
+            />
+            <span className="text-base text-slate-500 mt-1">点</span>
+          </>
         ) : (
-          <span className="text-2xl md:text-4xl font-bold tabular-nums text-slate-800">
-            {points.toLocaleString()}
-          </span>
+          <>
+            <span className="text-5xl md:text-7xl font-bold tabular-nums text-slate-800">
+              {points.toLocaleString()}
+            </span>
+            <span className="text-base text-slate-500 mt-1">点</span>
+          </>
         )}
-        <span className="text-xs text-slate-500 mt-0.5">点</span>
       </div>
 
-      <div className="flex gap-2 mt-auto">
+      <div className="flex gap-2 mt-auto items-end">
         <button
           type="button"
           onClick={onReach}
@@ -114,15 +138,26 @@ export function PlayerPanel({
           <HandMetal className="w-4 h-4" />
           リーチ
         </button>
-        <button
-          type="button"
-          onClick={onAgari}
-          disabled={state.gameEnded}
-          className="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 disabled:pointer-events-none"
-        >
-          <Trophy className="w-4 h-4" />
-          あがり
-        </button>
+        <div className="flex-1 flex flex-col items-stretch gap-0.5">
+          <button
+            type="button"
+            onClick={() =>
+              onToggleDiffView(isDiffView ? null : seatIndex)
+            }
+            className="self-end w-14 h-14 rounded-full flex items-center justify-center text-sm font-medium bg-slate-200 hover:bg-slate-300 text-slate-700 shrink-0"
+          >
+            {isDiffView ? '点数' : '点数差'}
+          </button>
+          <button
+            type="button"
+            onClick={onAgari}
+            disabled={state.gameEnded}
+            className="flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-medium bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 disabled:pointer-events-none"
+          >
+            <Trophy className="w-4 h-4" />
+            あがり
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { PlayerPanel } from './components/PlayerPanel';
 import { CenterStatus } from './components/CenterStatus';
 import { GlobalMenu } from './components/GlobalMenu';
@@ -29,6 +29,25 @@ function App() {
   const [agariSeat, setAgariSeat] = useState<number | null>(null);
   const [showRyukyoku, setShowRyukyoku] = useState(false);
   const [showEndModal, setShowEndModal] = useState(state.gameEnded);
+  /** 点数差表示の基準席（null=通常の点数表示） */
+  const [diffViewFromSeat, setDiffViewFromSeat] = useState<number | null>(null);
+  const diffViewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (diffViewFromSeat === null) return;
+    diffViewTimerRef.current = setTimeout(() => setDiffViewFromSeat(null), 30_000);
+    return () => {
+      if (diffViewTimerRef.current) clearTimeout(diffViewTimerRef.current);
+    };
+  }, [diffViewFromSeat]);
+
+  const handleToggleDiffView = (fromSeat: number | null) => {
+    if (diffViewTimerRef.current) {
+      clearTimeout(diffViewTimerRef.current);
+      diffViewTimerRef.current = null;
+    }
+    setDiffViewFromSeat(fromSeat);
+  };
 
   useWakeLock(!state.gameEnded);
 
@@ -66,6 +85,8 @@ function App() {
         <PlayerPanel
           seatIndex={0}
           state={state}
+          diffViewFromSeat={diffViewFromSeat}
+          onToggleDiffView={handleToggleDiffView}
           onPointsChange={(v) => setPoints(0, v)}
           onNameChange={(v) => setName(0, v)}
           onNameFocus={saveSnapshotForUndo}
@@ -76,6 +97,8 @@ function App() {
         <PlayerPanel
           seatIndex={1}
           state={state}
+          diffViewFromSeat={diffViewFromSeat}
+          onToggleDiffView={handleToggleDiffView}
           onPointsChange={(v) => setPoints(1, v)}
           onNameChange={(v) => setName(1, v)}
           onNameFocus={saveSnapshotForUndo}
@@ -86,6 +109,8 @@ function App() {
         <PlayerPanel
           seatIndex={3}
           state={state}
+          diffViewFromSeat={diffViewFromSeat}
+          onToggleDiffView={handleToggleDiffView}
           onPointsChange={(v) => setPoints(3, v)}
           onNameChange={(v) => setName(3, v)}
           onNameFocus={saveSnapshotForUndo}
@@ -96,6 +121,8 @@ function App() {
         <PlayerPanel
           seatIndex={2}
           state={state}
+          diffViewFromSeat={diffViewFromSeat}
+          onToggleDiffView={handleToggleDiffView}
           onPointsChange={(v) => setPoints(2, v)}
           onNameChange={(v) => setName(2, v)}
           onNameFocus={saveSnapshotForUndo}
